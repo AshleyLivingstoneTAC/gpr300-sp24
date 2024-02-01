@@ -22,6 +22,11 @@ struct Material {
 	float Shininess = 128;
 }material;
 
+struct Framebuffer {
+	unsigned int fbo;
+	unsigned int colorBuffer;
+
+};
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 GLFWwindow* initWindow(const char* title, int width, int height);
 void drawUI();
@@ -84,6 +89,21 @@ int main() {
 	}
 	printf("Shutting down...");
 }
+
+Framebuffer createFramebuffer()
+{
+	//Create Framebuffer Object
+	glCreateFramebuffers(1, &fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	//Create 8 bit RGBA color buffer
+	glGenTextures(1, &colorBuffer);
+	glBindTexture(GL_TEXTURE_2D, colorBuffer);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
+	//Attach color buffer to framebuffer
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorBuffer, 0);
+
+}
+
 void resetCamera(ew::Camera* camera, ew::CameraController* controller) {
 	camera->position = glm::vec3(0, 0, 5.0f);
 	camera->target = glm::vec3(0);
