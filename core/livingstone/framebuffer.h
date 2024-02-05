@@ -1,3 +1,6 @@
+#pragma once
+#include "../ew/external/glad.h"
+
 namespace livingstone {
 	struct Framebuffer {
 		unsigned int fbo;
@@ -6,5 +9,6 @@ namespace livingstone {
 		unsigned int width;
 		unsigned int height;
 	};
+	Framebuffer();
 	Framebuffer createFramebuffer(unsigned int width, unsigned int height, int colorFormat);
 }

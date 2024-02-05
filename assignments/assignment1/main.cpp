@@ -2,7 +2,7 @@
 #include <math.h>
 
 #include <ew/external/glad.h>
-
+#include <livingstone/framebuffer.h>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -22,11 +22,6 @@ struct Material {
 	float Shininess = 128;
 }material;
 
-struct Framebuffer {
-	unsigned int fbo;
-	unsigned int colorBuffer;
-
-};
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 GLFWwindow* initWindow(const char* title, int width, int height);
 void drawUI();
@@ -38,6 +33,7 @@ float prevFrameTime;
 float deltaTime;
 ew::Camera camera;
 ew::CameraController cameraController;
+livingstone::Framebuffer framebuffer = livingstone::createFramebuffer(screenWidth, screenHeight, GL_RGB16F);
 int main() {
 	GLFWwindow* window = initWindow("Assignment 0", screenWidth, screenHeight);
 	ew::Shader shader = ew::Shader("assets/lit.vert", "assets/lit.frag");
@@ -88,20 +84,6 @@ int main() {
 		glfwSwapBuffers(window);
 	}
 	printf("Shutting down...");
-}
-
-Framebuffer createFramebuffer()
-{
-	//Create Framebuffer Object
-	glCreateFramebuffers(1, &fbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-	//Create 8 bit RGBA color buffer
-	glGenTextures(1, &colorBuffer);
-	glBindTexture(GL_TEXTURE_2D, colorBuffer);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
-	//Attach color buffer to framebuffer
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, colorBuffer, 0);
-
 }
 
 void resetCamera(ew::Camera* camera, ew::CameraController* controller) {
