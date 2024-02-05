@@ -1,5 +1,7 @@
 #version 450
-out vec4 FragColor; //The color of this fragment
+out vec4 FragColor;
+//layout(location = 0) out vec4 FragColor1; //GL_COLOR_ATTACHMNENT0
+//layout(location = 1) out vec4 FragColor2; //GL_COLOR_ATTACHMNENT1
 in Surface{
 	vec3 WorldPos; //Vertex position in world space
 	vec3 WorldNormal; //Vertex normal in world space
@@ -25,9 +27,6 @@ uniform Material _Material;
 void main(){
 	//Make sure fragment normal is still length 1 after interpolation.
 	vec3 normal = normalize(fs_in.WorldNormal);
-//	vec3 normal = texture(_NormalMap, fs_in.TexCoord).rgb;
-//	normal = normal * 2.0 - 1.0;
-//	normal = normalize(fs_in.TBN * normal);
 	vec3 rgb_normal = normal * 0.5 + 0.5;
 	//Light pointing straight down
 	vec3 toLight = -_LightDirection;
@@ -41,5 +40,6 @@ void main(){
 	vec3 lightColor = (_Material.Kd * diffuseFactor + _Material.Ks * specularFactor) * _LightColor;
 	lightColor+=_AmbientColor * _Material.Ka;
 	vec3 objectColor = texture(_MainTex,fs_in.TexCoord).rgb;
+
 	FragColor = vec4(objectColor * lightColor,1.0);
 }
