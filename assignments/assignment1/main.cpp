@@ -43,10 +43,8 @@ int main() {
 	ew::Model monkeyModel = ew::Model("assets/suzanne.obj");
 	ew::Transform monkeyTransform;
 	ew::Shader blurShader = ew::Shader("assets/post.vert", "assets/post.frag");
-	livingstone::Framebuffer framebuffer = livingstone::createFramebuffer(screenWidth, screenHeight, GL_RGB16F);
 	GLuint brickTexture = ew::loadTexture("assets/RoofingTiles014A_1K-JPG_Color.jpg");
-	GLenum status = glCheckFramebufferStatus(framebuffer.fbo);
-	
+	livingstone::Framebuffer framebuffer = livingstone::createFramebuffer(screenWidth, screenHeight, GL_RGB16F);
 
 	camera.position = glm::vec3(0.0f, 0.0f, 5.0f);
 	camera.target = glm::vec3(0.0f, 0.0f, 0.0f); //Look at the center of the scene
@@ -55,9 +53,7 @@ int main() {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK); //Back face culling
 	glEnable(GL_DEPTH_TEST); //Depth testing
-	if (status != GL_FRAMEBUFFER_COMPLETE) {
-		printf("Framebuffer incomplete: %d", status);
-	}
+	
 
 	shader.use();
 	shader.setInt("_MainTex", 0);
@@ -65,25 +61,21 @@ int main() {
 	glCreateVertexArrays(1, &dummyVAO);
 	while (!glfwWindowShouldClose(window)) {
 
-
+		glfwPollEvents();
 		float time = (float)glfwGetTime();
 		deltaTime = time - prevFrameTime;
 		prevFrameTime = time;
 
 		//RENDER
-		glBindTextureUnit(0, brickTexture); 
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.fbo); 
 		glViewport(0, 0, framebuffer.width, framebuffer.height); 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
-		glfwPollEvents(); 
-		glClearColor(0.6f,0.8f,0.92f,1.0f);
 		
+		glClearColor(0.6f,0.8f,0.92f,1.0f);
+		glBindTextureUnit(0, brickTexture); 
 
 		shader.use();
-		if (bs)
-		{
-			blurShader.use();
-		}
+		shader.setInt("_MainTex", 0);
 		shader.setMat4("_ViewProjection", camera.projectionMatrix() * camera.viewMatrix()); 
 		shader.setMat4("_Model", monkeyTransform.modelMatrix()); 
 		shader.setVec3("_EyePos", camera.position); 
@@ -97,13 +89,16 @@ int main() {
 		cameraController.move(window, &camera, deltaTime);
 		monkeyTransform.rotation = glm::rotate(monkeyTransform.rotation, deltaTime, glm::vec3(0.0, 1.0, 0.0)); 
 		//transform.modelMatrix() combines translation, rotation, and scale into a 4x4 model matrix
-
+		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glBindTextureUnit(0, framebuffer.colorBuffer[0]); 
 		glBindVertexArray(dummyVAO);
+		if (bs)
+		{
+			blurShader.use();
+		}
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-		monkeyModel.draw(); //Draws monkey model using current shader  
 		drawUI(); 
 		glfwSwapBuffers(window);
 	}

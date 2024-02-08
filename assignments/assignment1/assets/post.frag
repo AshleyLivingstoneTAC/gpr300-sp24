@@ -7,6 +7,7 @@ layout(location = 0) out vec4 FragColor;
  in vec2 UV;
  uniform sampler2D _ColorBuffer;
  uniform float proc;
+ uniform bool on;
 void main()
 {
 vec2 texelSize = proc / textureSize(_ColorBuffer,0).xy;
@@ -18,6 +19,5 @@ for(int y = -2; y <= 2; y++){
    }
 }
 totalColor/=(5 * 5);
-FragColor = vec4(totalColor,1.0); 
-
+FragColor = vec4(totalColor, 1.0);
 }
