@@ -39,10 +39,12 @@ ew::CameraController cameraController;
 int main() {
 	GLFWwindow* window = initWindow("Assignment 1", screenWidth, screenHeight);
 	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
-	ew::Shader shader = ew::Shader("assets/lit.vert", "assets/lit.frag");
+	
 	ew::Model monkeyModel = ew::Model("assets/suzanne.obj");
 	ew::Transform monkeyTransform;
 	ew::Shader blurShader = ew::Shader("assets/post.vert", "assets/post.frag");
+	ew::Shader invertShader = ew::Shader("assets/post.vert", "assets/invert.frag");
+	ew::Shader shader = ew::Shader("assets/lit.vert", "assets/lit.frag"); 
 	GLuint brickTexture = ew::loadTexture("assets/RoofingTiles014A_1K-JPG_Color.jpg");
 	livingstone::Framebuffer framebuffer = livingstone::createFramebuffer(screenWidth, screenHeight, GL_RGB16F);
 
@@ -94,10 +96,9 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glBindTextureUnit(0, framebuffer.colorBuffer[0]); 
 		glBindVertexArray(dummyVAO);
-		if (bs)
-		{
-			blurShader.use();
-		}
+	
+	    invertShader.use();   
+
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		drawUI(); 
 		glfwSwapBuffers(window);
