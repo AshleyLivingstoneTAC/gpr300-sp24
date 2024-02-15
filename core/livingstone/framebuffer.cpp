@@ -26,8 +26,25 @@
 		//Attach to framebuffer (assuming FBO is bound)
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, buffer.depthBuffer, 0);
 
-		glGenTextures(1, &buffer.shadowMap);
-		glBindTexture(GL_TEXTURE_2D, buffer.shadowMap);
+		
+
+		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);  
+		buffer.width = width, buffer.height = height;
+		if (status != GL_FRAMEBUFFER_COMPLETE) {
+			printf("Framebuffer incomplete: %d", status);
+		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		return buffer;
+	}
+
+	livingstone::Framebuffer livingstone::createShadowMap(unsigned int width, unsigned int height, int colorFormat)
+	{
+		livingstone::Framebuffer shadowBuffer;
+		glCreateFramebuffers(1, &shadowBuffer.fbo);
+		glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer.fbo);
+
+		glGenTextures(1, &shadowBuffer.shadowMap); 
+		glBindTexture(GL_TEXTURE_2D, shadowBuffer.shadowMap); 
 		//16 bit depth values, 2k resolution 
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT16, 2048, 2048);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -39,13 +56,5 @@
 		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 		glDrawBuffer(GL_NONE);
 		glReadBuffer(GL_NONE);
-
-
-		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);  
-		buffer.width = width, buffer.height = height;
-		if (status != GL_FRAMEBUFFER_COMPLETE) {
-			printf("Framebuffer incomplete: %d", status);
-		}
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		return buffer;
+		return shadowBuffer;
 	}

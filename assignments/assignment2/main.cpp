@@ -15,6 +15,7 @@
 #include <ew/transform.h>
 #include <ew/cameraController.h>
 #include <ew/texture.h>
+#include <ew/procGen.h>
 
 struct Material {
 	float Ka = 1.0;
@@ -34,6 +35,7 @@ float prevFrameTime;
 float deltaTime;
 bool bs = false;
 ew::Camera camera;
+ew::Camera orthoCam;
 ew::CameraController cameraController;
 
 int main() {
@@ -46,12 +48,21 @@ int main() {
 	ew::Shader invertShader = ew::Shader("assets/post.vert", "assets/invert.frag");
 	ew::Shader shader = ew::Shader("assets/lit.vert", "assets/lit.frag"); 
 	GLuint brickTexture = ew::loadTexture("assets/RoofingTiles014A_1K-JPG_Color.jpg");
+	ew::Mesh planeMesh = ew::Mesh(ew::createPlane(10, 10, 5));
+
 	livingstone::Framebuffer framebuffer = livingstone::createFramebuffer(screenWidth, screenHeight, GL_RGB16F);
 
 	camera.position = glm::vec3(0.0f, 0.0f, 5.0f);
 	camera.target = glm::vec3(0.0f, 0.0f, 0.0f); //Look at the center of the scene
 	camera.aspectRatio = (float)screenWidth / screenHeight;
 	camera.fov = 60.0f; //Vertical field of view, in degrees
+
+	orthoCam.position = glm::vec3(0.0f, 0.0f, 0.0f);
+	orthoCam.target = glm::vec3(0.0f, 0.0f, 0.0f);
+	orthoCam.orthographic = true;
+	orthoCam.orthoHeight = 0;
+	orthoCam.aspectRatio = 1;
+
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK); //Back face culling
 	glEnable(GL_DEPTH_TEST); //Depth testing
@@ -85,8 +96,10 @@ int main() {
 		shader.setFloat("_Material.Kd", material.Kd); 
 		shader.setFloat("_Material.Ks", material.Ks); 
 		shader.setFloat("_Material.Shininess", material.Shininess); 
-		shader.setMat4("_Model", monkeyTransform.modelMatrix()); 
 		monkeyModel.draw(); //Draws monkey model using current shader 
+		planeMesh.draw(); 
+		  
+
 		//Rotate model around Y axis
 		cameraController.move(window, &camera, deltaTime);
 		monkeyTransform.rotation = glm::rotate(monkeyTransform.rotation, deltaTime, glm::vec3(0.0, 1.0, 0.0)); 
@@ -95,10 +108,9 @@ int main() {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glBindTextureUnit(0, framebuffer.colorBuffer[0]); 
-		glBindVertexArray(dummyVAO);
-	
-	    invertShader.use();   
+		glBindVertexArray(dummyVAO);   
 
+		blurShader.use();
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		drawUI(); 
 		glfwSwapBuffers(window);
@@ -127,13 +139,7 @@ void drawUI() {
 		ImGui::SliderFloat("SpecularK", &material.Ks, 0.0f, 1.0f);
 		ImGui::SliderFloat("Shininess", &material.Shininess, 2.0f, 1024.0f);
 	}
-	if (ImGui::Button("Blur"))
-	{
-		if (bs)
-			bs = false;
-		else
-			bs = true;
-	}
+	
 	ImGui::End();
 
 	ImGui::Render();
@@ -182,5 +188,3 @@ GLFWwindow* initWindow(const char* title, int width, int height) {
 
 	return window;
 }
-
-
