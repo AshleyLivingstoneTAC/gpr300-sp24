@@ -96,6 +96,8 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glBindTextureUnit(0, framebuffer.colorBuffer[0]); 
 		glBindVertexArray(dummyVAO);
+	
+	    invertShader.use();   
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		drawUI(); 
