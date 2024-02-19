@@ -26,8 +26,7 @@ struct Material {
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 GLFWwindow* initWindow(const char* title, int width, int height);
-void drawUI();
-
+void drawUI(livingstone::Framebuffer shadowMap);
 //Global state
 int screenWidth = 1080;
 int screenHeight = 720;
@@ -46,12 +45,13 @@ int main() {
 	ew::Transform monkeyTransform;
 	ew::Shader blurShader = ew::Shader("assets/post.vert", "assets/post.frag");
 	ew::Shader invertShader = ew::Shader("assets/post.vert", "assets/invert.frag");
+	ew::Shader depthShader = ew::Shader("assets/depth.vert", "assets/depth.frag");
 	ew::Shader shader = ew::Shader("assets/lit.vert", "assets/lit.frag"); 
 	GLuint brickTexture = ew::loadTexture("assets/RoofingTiles014A_1K-JPG_Color.jpg");
 	ew::Mesh planeMesh = ew::Mesh(ew::createPlane(10, 10, 5));
 
 	livingstone::Framebuffer framebuffer = livingstone::createFramebuffer(screenWidth, screenHeight, GL_RGB16F);
-
+	livingstone::Framebuffer shadowMap = livingstone::createShadowMap(screenWidth, screenHeight, GL_RGB16F);
 	camera.position = glm::vec3(0.0f, 0.0f, 5.0f);
 	camera.target = glm::vec3(0.0f, 0.0f, 0.0f); //Look at the center of the scene
 	camera.aspectRatio = (float)screenWidth / screenHeight;
@@ -62,6 +62,10 @@ int main() {
 	orthoCam.orthographic = true;
 	orthoCam.orthoHeight = 0;
 	orthoCam.aspectRatio = 1;
+
+	/*glm::mat4 lightView = glm::lookAt(orthoCam.target, orthoCam.position, glm::vec3(0,1,0)); 
+	glm::mat4 lightProj = glm::ortho(glm::vec3(-1, 0, 0), glm::vec3(1, 0, 0), glm::vec3(0, 1, 0), glm::vec3(0, -1, 0), glm::vec3(0, 0, -1), glm::vec3(0, 0, 1));
+	glm::mat4 lightMatrix = lightProj * lightView;  */
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK); //Back face culling
@@ -112,7 +116,8 @@ int main() {
 
 		blurShader.use();
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-		drawUI(); 
+		depthShader.use();
+		drawUI(shadowMap); 
 		glfwSwapBuffers(window);
 	}
 	printf("Shutting down...");
@@ -124,7 +129,7 @@ void resetCamera(ew::Camera* camera, ew::CameraController* controller) {
 	controller->yaw = controller->pitch = 0;
 }
 
-void drawUI() {
+void drawUI(livingstone::Framebuffer shadowMap) {
 	ImGui_ImplGlfw_NewFrame();
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui::NewFrame();
@@ -139,7 +144,25 @@ void drawUI() {
 		ImGui::SliderFloat("SpecularK", &material.Ks, 0.0f, 1.0f);
 		ImGui::SliderFloat("Shininess", &material.Shininess, 2.0f, 1024.0f);
 	}
-	
+	if (ImGui::CollapsingHeader("Light")) {
+		ImGui::SliderFloat("DirectionX", &orthoCam.position.x, -1, 1);
+		ImGui::SliderFloat("DirectionY", &orthoCam.position.y, -1, 1);
+		ImGui::SliderFloat("DirectionZ", &orthoCam.position.z, -1, 1);
+	}
+	if (ImGui::CollapsingHeader("Shadows")) {
+		
+	}
+	ImGui::End();
+
+	ImGui::Begin("Shadow Map");
+	//Using a Child allow to fill all the space of the window.
+	ImGui::BeginChild("Shadow Map");
+	//Stretch image to be window size
+	ImVec2 windowSize = ImGui::GetWindowSize();
+	//Invert 0-1 V to flip vertically for ImGui display
+	//shadowMap is the texture2D handle
+	ImGui::Image((ImTextureID)shadowMap.shadowMap, windowSize, ImVec2(0, 1), ImVec2(1, 0));
+	ImGui::EndChild();
 	ImGui::End();
 
 	ImGui::Render();
