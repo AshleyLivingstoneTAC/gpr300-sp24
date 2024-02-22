@@ -62,10 +62,8 @@ int main() {
 	orthoCam.orthographic = true;
 	orthoCam.orthoHeight = 0;
 	orthoCam.aspectRatio = 1;
-
-	/*glm::mat4 lightView = glm::lookAt(orthoCam.target, orthoCam.position, glm::vec3(0,1,0)); 
-	glm::mat4 lightProj = glm::ortho(glm::vec3(-1, 0, 0), glm::vec3(1, 0, 0), glm::vec3(0, 1, 0), glm::vec3(0, -1, 0), glm::vec3(0, 0, -1), glm::vec3(0, 0, 1));
-	glm::mat4 lightMatrix = lightProj * lightView;  */
+	
+	orthoCam.viewMatrix() = glm::lookAt(orthoCam.position, orthoCam.target, glm::vec3(0, 1, 0));
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK); //Back face culling
@@ -103,7 +101,8 @@ int main() {
 		monkeyModel.draw(); //Draws monkey model using current shader 
 		planeMesh.draw(); 
 		  
-
+		depthShader.setMat4("_ViewProjection", orthoCam.viewMatrix());
+		depthShader.setMat4("_Model", monkeyTransform.modelMatrix());
 		//Rotate model around Y axis
 		cameraController.move(window, &camera, deltaTime);
 		monkeyTransform.rotation = glm::rotate(monkeyTransform.rotation, deltaTime, glm::vec3(0.0, 1.0, 0.0)); 
@@ -161,7 +160,7 @@ void drawUI(livingstone::Framebuffer shadowMap) {
 	ImVec2 windowSize = ImGui::GetWindowSize();
 	//Invert 0-1 V to flip vertically for ImGui display
 	//shadowMap is the texture2D handle
-	ImGui::Image((ImTextureID)shadowMap.shadowMap, windowSize, ImVec2(0, 1), ImVec2(1, 0));
+	ImGui::Image((ImTextureID)shadowMap.fbo, windowSize, ImVec2(0, 1), ImVec2(1, 0));
 	ImGui::EndChild();
 	ImGui::End();
 
