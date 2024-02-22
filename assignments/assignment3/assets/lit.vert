@@ -7,9 +7,6 @@ layout (location = 3) in vec3 vTangent;
 layout (location = 4) in vec3 vBitangent;  
 uniform mat4 _Model; 
 uniform mat4 _ViewProjection;
-uniform mat4 _LightViewProj; //view + projection of light source camera
-out vec4 LightSpacePos; //Sent to fragment shader
-
 
 out Surface{
 	vec3 WorldPos; //Vertex position in world space
@@ -28,6 +25,5 @@ void main(){
 	//Transform vertex normal to world space using Normal Matrix
 	vs_out.WorldNormal = transpose(inverse(mat3(_Model))) * vNormal;
 vs_out.TexCoord = vTexCoord;
-LightSpacePos = _LightViewProj * _Model * vec4(vPos,1);
 gl_Position = _ViewProjection * _Model * vec4(vPos,1.0);
 }
