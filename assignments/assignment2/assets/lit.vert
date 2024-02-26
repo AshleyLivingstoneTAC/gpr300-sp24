@@ -27,7 +27,8 @@ void main(){
    vs_out.WorldPos = vec3(_Model * vec4(vPos,1.0));
 	//Transform vertex normal to world space using Normal Matrix
 	vs_out.WorldNormal = transpose(inverse(mat3(_Model))) * vNormal;
-vs_out.TexCoord = vTexCoord;
-LightSpacePos = _LightViewProj * _Model * vec4(vPos,1);
-gl_Position = _ViewProjection * _Model * vec4(vPos,1.0);
+    vs_out.TexCoord = vTexCoord;
+	vs_out.TBN = TBN;
+	LightSpacePos = _LightViewProj * _Model * vec4(vPos,1);
+	gl_Position = _ViewProjection * _Model * vec4(vPos,1.0);
 }

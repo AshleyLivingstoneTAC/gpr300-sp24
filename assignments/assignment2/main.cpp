@@ -30,6 +30,7 @@ void drawUI(livingstone::Framebuffer shadowMap);
 //Global state
 int screenWidth = 1080;
 int screenHeight = 720;
+int resolution = 2048;
 float prevFrameTime;
 float deltaTime;
 bool bs = false;
@@ -49,14 +50,15 @@ int main() {
 	ew::Shader shader = ew::Shader("assets/lit.vert", "assets/lit.frag"); 
 	GLuint brickTexture = ew::loadTexture("assets/RoofingTiles014A_1K-JPG_Color.jpg");
 	ew::Mesh planeMesh = ew::Mesh(ew::createPlane(10, 10, 5));
-
 	livingstone::Framebuffer framebuffer = livingstone::createFramebuffer(screenWidth, screenHeight, GL_RGB16F);
-	livingstone::Framebuffer shadowMap = livingstone::createShadowMap(2048, 2048, GL_RGB16F);
-	camera.position = glm::vec3(0.0f, 2.5f, 5.0f);
+	livingstone::Framebuffer shadowMap = livingstone::createShadowMap(resolution, resolution, GL_RGB16F);
+	camera.position = glm::vec3(0.0f, 0.0f, 2.0f);
 	camera.target = glm::vec3(0.0f, 0.0f, 0.0f); //Look at the center of the scene
 	camera.aspectRatio = (float)screenWidth / screenHeight;
 	camera.fov = 60.0f; //Vertical field of view, in degrees
 
+	orthoCam.position = glm::vec3(0.0f, 5.0f, 0.0f);
+	orthoCam.target = glm::vec3(0.0f, 0.0f, 0.0f); //Look at the center of the scene
 	orthoCam.orthographic = true;
 	orthoCam.orthoHeight = 5;
 	orthoCam.aspectRatio = 1;
@@ -88,7 +90,6 @@ int main() {
 		depthShader.setMat4("_ViewProjection", orthoCam.projectionMatrix() * orthoCam.viewMatrix());
 		depthShader.setMat4("_Model", monkeyTransform.modelMatrix()); 
 		monkeyModel.draw();
-		planeMesh.draw();
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.fbo);
 		glViewport(0, 0, framebuffer.width, framebuffer.height); 
@@ -99,6 +100,7 @@ int main() {
 
 		shader.use();
 		shader.setInt("_MainTex", 0);
+		shader.setInt("_ShadowMap", shadowMap.depthBuffer);
 		shader.setMat4("_ViewProjection", camera.projectionMatrix() * camera.viewMatrix()); 
 		shader.setMat4("_Model", monkeyTransform.modelMatrix()); 
 		shader.setVec3("_EyePos", camera.position); 
@@ -106,8 +108,10 @@ int main() {
 		shader.setFloat("_Material.Kd", material.Kd); 
 		shader.setFloat("_Material.Ks", material.Ks); 
 		shader.setFloat("_Material.Shininess", material.Shininess); 
+
 		monkeyModel.draw(); //Draws monkey model using current shader 
-		planeMesh.draw(); 
+		planeMesh.draw();
+
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.fbo); 
 		
 		//Rotate model around Y axis

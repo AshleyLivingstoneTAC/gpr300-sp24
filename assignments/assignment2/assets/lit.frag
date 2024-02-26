@@ -44,9 +44,6 @@ float shadow = calcShadow(_ShadowMap, LightSpacePos);
 
 	//Make sure fragment normal is still length 1 after interpolation.
 	vec3 normal = normalize(fs_in.WorldNormal);
-//	vec3 normal = texture(_NormalMap, fs_in.TexCoord).rgb;
-//	normal = normal * 2.0 - 1.0;
-//	normal = normalize(fs_in.TBN * normal);
 	vec3 rgb_normal = normal * 0.5 + 0.5;
 	//Light pointing straight down
 	vec3 toLight = -_LightDirection;
