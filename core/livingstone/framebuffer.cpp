@@ -43,10 +43,10 @@
 		glCreateFramebuffers(1, &shadowBuffer.fbo);
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer.fbo);
 
-		glGenTextures(1, &shadowBuffer.shadowMap); 
-		glBindTexture(GL_TEXTURE_2D, shadowBuffer.shadowMap); 
+		glGenTextures(1, &shadowBuffer.depthBuffer); 
+		glBindTexture(GL_TEXTURE_2D, shadowBuffer.depthBuffer); 
 		//16 bit depth values, 2k resolution 
-		glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT16, 2048, 2048);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT16, width, height);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		//Pixels outside of frustum should have max distance (white)
@@ -54,7 +54,9 @@
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 		float borderColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowBuffer.depthBuffer, 0); 
 		glDrawBuffer(GL_NONE);
 		glReadBuffer(GL_NONE);
+		shadowBuffer.width = width, shadowBuffer.height = height; 
 		return shadowBuffer;
 	}

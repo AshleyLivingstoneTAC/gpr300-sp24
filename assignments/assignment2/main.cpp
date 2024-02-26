@@ -51,16 +51,14 @@ int main() {
 	ew::Mesh planeMesh = ew::Mesh(ew::createPlane(10, 10, 5));
 
 	livingstone::Framebuffer framebuffer = livingstone::createFramebuffer(screenWidth, screenHeight, GL_RGB16F);
-	livingstone::Framebuffer shadowMap = livingstone::createShadowMap(screenWidth, screenHeight, GL_RGB16F);
-	camera.position = glm::vec3(0.0f, 0.0f, 5.0f);
+	livingstone::Framebuffer shadowMap = livingstone::createShadowMap(2048, 2048, GL_RGB16F);
+	camera.position = glm::vec3(0.0f, 2.5f, 5.0f);
 	camera.target = glm::vec3(0.0f, 0.0f, 0.0f); //Look at the center of the scene
 	camera.aspectRatio = (float)screenWidth / screenHeight;
 	camera.fov = 60.0f; //Vertical field of view, in degrees
 
-	orthoCam.position = glm::vec3(0.0f, 0.0f, 0.0f);
-	orthoCam.target = glm::vec3(0.0f, 0.0f, 0.0f);
 	orthoCam.orthographic = true;
-	orthoCam.orthoHeight = 0;
+	orthoCam.orthoHeight = 5;
 	orthoCam.aspectRatio = 1;
 	
 
@@ -169,7 +167,7 @@ void drawUI(livingstone::Framebuffer shadowMap) {
 	ImVec2 windowSize = ImGui::GetWindowSize();
 	//Invert 0-1 V to flip vertically for ImGui display
 	//shadowMap is the texture2D handle
-	ImGui::Image((ImTextureID)shadowMap.shadowMap, windowSize, ImVec2(0, 1), ImVec2(1, 0));
+	ImGui::Image((ImTextureID)shadowMap.depthBuffer, windowSize, ImVec2(0, 1), ImVec2(1, 0));
 	ImGui::EndChild();
 	ImGui::End();
 
