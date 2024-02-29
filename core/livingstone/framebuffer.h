@@ -13,5 +13,6 @@ namespace livingstone
 	};
 	Framebuffer createFramebuffer(unsigned int width, unsigned int height, int colorFormat);
 	Framebuffer createShadowMap(unsigned int width, unsigned int height, int colorFormat);
+	Framebuffer createGbuffer(unsigned int width, unsigned int height);
 }
 
