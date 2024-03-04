@@ -46,7 +46,7 @@ float shadowMapDepth = texture(shadowMap, sampleCoord.xy).r;
 
 vec3 calculateLighting(vec3 n, vec3 pos, vec3 a)
 {
-	vec3 light = vec3(0);
+	vec3 light = vec3(n * pos * a);
 	return light;
 }
 
@@ -60,4 +60,3 @@ void main(){
 	vec3 lightColor = calculateLighting(normal,worldPos,albedo);
 	FragColor = vec4(albedo * lightColor,1.0);
 }
-
