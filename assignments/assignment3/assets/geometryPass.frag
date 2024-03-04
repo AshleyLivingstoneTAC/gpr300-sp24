@@ -5,8 +5,9 @@ layout(location = 2) out vec3 gAlbedo;
 
 in Surface{
 	vec3 WorldPos; 
-	vec2 TexCoord;
 	vec3 WorldNormal;
+    vec2 TexCoord;
+	mat3 TBN;
 }fs_in;
 
 uniform sampler2D _MainTex;

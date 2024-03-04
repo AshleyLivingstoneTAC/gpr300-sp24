@@ -69,7 +69,7 @@
 
 		glCreateFramebuffers(1, &framebuffer.fbo);
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.fbo);
-		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
 		int formats[3] = {
 			GL_RGB32F, //0 = World Position 
 			GL_RGB16F, //1 = World Normal
@@ -99,7 +99,10 @@
 		//TODO: Add texture2D depth buffer
 		glGenTextures(1, &framebuffer.depthBuffer);
 		glBindTexture(GL_TEXTURE_2D, framebuffer.depthBuffer);
-
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT16, width, height);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, framebuffer.depthBuffer, 0);
+		
+		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER); 
 		if (status != GL_FRAMEBUFFER_COMPLETE) {
 			printf("G-Buffer incomplete: %d", status);
 		}
