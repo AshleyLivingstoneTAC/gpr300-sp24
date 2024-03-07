@@ -26,10 +26,24 @@ struct Material{
 	float Ks; //Specular coefficient (0-1)
 	float Shininess; //Affects size of specular highlight
 };
+
+struct PointLight{
+	vec3 position;
+    float radius;
+	vec4 color;
+};
+#define MAX_POINT_LIGHTS 64
+uniform PointLight _PointLights[MAX_POINT_LIGHTS];
+
 uniform Material _Material;
 uniform layout(binding = 0) sampler2D _gPositions;
 uniform layout(binding = 1) sampler2D _gNormals;
 uniform layout(binding = 2) sampler2D _gAlbedo;
+
+float attenuateLinear(float distance, float radius)
+{
+	return clamp(((radius-distance)/radius),0.0,1.0);
+}
 
 float calcShadow(sampler2D shadowMap, vec4 lightSpacePos)
 {
@@ -43,6 +57,17 @@ float shadowMapDepth = texture(shadowMap, sampleCoord.xy).r;
  return step(shadowMapDepth,myDepth);
 
 }
+vec3 calcPointLight(PointLight light,vec3 normal){
+	vec3 diff = light.position - fs_in.WorldPos;
+	//Direction toward light position
+	vec3 toLight = normalize(diff);
+	//TODO: Usual blinn-phong calculations for diffuse + specular
+	vec3 lightColor = (diff + _Material.Ks) * light.color.rgb;
+	//Attenuation
+	float d = length(diff); //Distance to light
+	lightColor*=attenuateLinear(d,light.radius); //See below for attenuation options
+	return lightColor;
+}
 
 vec3 calculateLighting(vec3 n, vec3 pos, vec3 a)
 {
@@ -51,12 +76,13 @@ vec3 calculateLighting(vec3 n, vec3 pos, vec3 a)
 }
 
 void main(){
-	//Sample surface properties for this screen pixel
-	vec3 normal = texture(_gNormals,UV).xyz;
-	vec3 worldPos = texture(_gPositions,UV).xyz;
-	vec3 albedo = texture(_gAlbedo,UV).xyz;
-
-	//Worldspace lighting calculations, same as in forward shading
-	vec3 lightColor = calculateLighting(normal,worldPos,albedo);
-	FragColor = vec4(albedo * lightColor,1.0);
+	vec3 normal = normalize(fs_in.WorldNormal);
+	vec3 totalLight = vec3(0);
+	vec3 albedo = texture(_MainTex,fs_in.TexCoord).xyz;
+	totalLight += calculateLighting(normal, _PointLights[0].position, albedo);
+	for(int i=0;i<MAX_POINT_LIGHTS;i++)
+	{
+    totalLight+=calcPointLight(_PointLights[i],normal);
+    }
+FragColor = vec4(albedo * totalLight,0);
 }

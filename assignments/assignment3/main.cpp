@@ -24,6 +24,12 @@ struct Material {
 	float Shininess = 128;
 }material;
 
+struct PointLight {
+	glm::vec3 position;
+	float radius;
+	glm::vec4 color;
+}pointLight;
+
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 GLFWwindow* initWindow(const char* title, int width, int height);
 void drawUI(livingstone::Framebuffer shadowMap, livingstone::Framebuffer g);
@@ -37,6 +43,9 @@ bool bs = false;
 ew::Camera camera;
 ew::Camera orthoCam;
 ew::CameraController cameraController;
+const int MAX_POINT_LIGHTS = 64;
+PointLight pointLights[MAX_POINT_LIGHTS];
+
 
 int main() {
 	GLFWwindow* window = initWindow("Assignment 1", screenWidth, screenHeight);
@@ -49,8 +58,10 @@ int main() {
 	ew::Shader depthShader = ew::Shader("assets/depth.vert", "assets/depth.frag");
 	ew::Shader shader = ew::Shader("assets/lit.vert", "assets/lit.frag"); 
 	ew::Shader geoShader = ew::Shader("assets/geometryPass.vert", "assets/geometryPass.frag");
+	ew::Shader deferredShader = ew::Shader("assets/defferedLit.vert", "assets/defferedLit.frag");
 	GLuint brickTexture = ew::loadTexture("assets/RoofingTiles014A_1K-JPG_Color.jpg");
 	ew::Mesh planeMesh = ew::Mesh(ew::createPlane(10, 10, 5));
+	ew::Transform planeTransform;
 	livingstone::Framebuffer framebuffer = livingstone::createFramebuffer(screenWidth, screenHeight, GL_RGB16F);
 	livingstone::Framebuffer shadowMap = livingstone::createShadowMap(resolution, resolution, GL_RGB16F);
 	livingstone::Framebuffer gBuffer = livingstone::createGbuffer(screenWidth, screenHeight);
@@ -70,7 +81,6 @@ int main() {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK); //Back face culling
 	glEnable(GL_DEPTH_TEST); //Depth testing
-	
 
 	shader.use();
 	shader.setInt("_MainTex", 0);
@@ -99,8 +109,25 @@ int main() {
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
+		monkeyTransform.position = glm::vec3(0);
+		planeTransform.position = glm::vec3(0, -5, 0);
 		monkeyModel.draw();
 		planeMesh.draw();
+
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.fbo);
+		glViewport(0, 0, framebuffer.width, framebuffer.height);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		deferredShader.use();
+		//TODO: Set the rest of your lighting uniforms for deferredShader. (same way we did this for lit.frag)
+
+		//Bind g-buffer textures
+		glBindTextureUnit(0, gBuffer.colorBuffer[0]);
+		glBindTextureUnit(1, gBuffer.colorBuffer[1]);
+		glBindTextureUnit(2, gBuffer.colorBuffer[2]);
+		glBindTextureUnit(3, shadowMap.depthBuffer); //For shadow mapping
+
+		glBindVertexArray(dummyVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		//RENDER
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowMap.fbo); 
