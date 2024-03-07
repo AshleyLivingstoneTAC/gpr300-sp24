@@ -84,6 +84,16 @@ int main() {
 		prevFrameTime = time;
 		
 		geoShader.use();
+		geoShader.setInt("_MainTex", 0);
+		geoShader.setInt("_MainTex", 0);
+		geoShader.setInt("_ShadowMap", shadowMap.depthBuffer);
+		geoShader.setMat4("_ViewProjection", camera.projectionMatrix() * camera.viewMatrix());
+		geoShader.setMat4("_Model", monkeyTransform.modelMatrix());
+		geoShader.setVec3("_EyePos", camera.position);
+		geoShader.setFloat("_Material.Ka", material.Ka);
+		geoShader.setFloat("_Material.Kd", material.Kd);
+		geoShader.setFloat("_Material.Ks", material.Ks);
+		geoShader.setFloat("_Material.Shininess", material.Shininess);
 		glBindFramebuffer(GL_FRAMEBUFFER, gBuffer.fbo);
 		glViewport(0, 0, gBuffer.width, gBuffer.height);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
