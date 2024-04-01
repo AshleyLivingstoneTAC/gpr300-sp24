@@ -15,7 +15,7 @@ set(CORE_INC_DIR
  CACHE PATH "CORE INCLUDE SOURCE PATH"
 )
 
-add_library(core STATIC ${CORE_SRC} ${CORE_INC})
+add_library(core STATIC ${CORE_SRC} ${CORE_INC} "livingstone/node.h" "livingstone/node.cpp" "livingstone/hierarchy.h" "livingstone/hierarchy.cpp")
 
 find_package(OpenGL REQUIRED)
 
