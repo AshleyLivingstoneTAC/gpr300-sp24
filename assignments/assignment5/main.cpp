@@ -17,6 +17,9 @@
 #include <ew/texture.h>
 #include <ew/procGen.h>
 
+#include <livingstone/node.h>
+#include <livingstone/hierarchy.h>
+
 struct Material {
 	float Ka = 1.0;
 	float Kd = 0.5;
@@ -50,6 +53,19 @@ int main() {
 	ew::Shader shader = ew::Shader("assets/lit.vert", "assets/lit.frag"); 
 	GLuint brickTexture = ew::loadTexture("assets/RoofingTiles014A_1K-JPG_Color.jpg");
 	ew::Mesh planeMesh = ew::Mesh(ew::createPlane(10, 10, 5));
+
+	livingstone::Node root = livingstone::createNode(monkeyTransform.modelMatrix(), 0);
+	livingstone::Node hips = livingstone::createNode(monkeyTransform.modelMatrix(), 1);
+	livingstone::Node torso = livingstone::createNode(monkeyTransform.modelMatrix(), 2);
+	livingstone::Node shoulder = livingstone::createNode(monkeyTransform.modelMatrix(), 3);
+
+	livingstone::Hierarchy h;
+
+	h.addNode(root);
+	h.addNode(hips);
+	h.addNode(torso);
+	h.addNode(shoulder);
+
 	livingstone::Framebuffer framebuffer = livingstone::createFramebuffer(screenWidth, screenHeight, GL_RGB16F);
 	livingstone::Framebuffer shadowMap = livingstone::createShadowMap(resolution, resolution, GL_RGB16F);
 	camera.position = glm::vec3(0.0f, 0.0f, 2.0f);
@@ -109,6 +125,7 @@ int main() {
 		shader.setFloat("_Material.Ks", material.Ks); 
 		shader.setFloat("_Material.Shininess", material.Shininess); 
 
+		SolveFK(h);
 		monkeyModel.draw(); //Draws monkey model using current shader 
 		planeMesh.draw();
 
@@ -220,4 +237,15 @@ GLFWwindow* initWindow(const char* title, int width, int height) {
 	ImGui_ImplOpenGL3_Init();
 
 	return window;
+}
+
+void SolveFK(livingstone::Hierarchy hierarchy)
+{
+	for (int i = 0; i < hierarchy.nodeCount; i++)
+	{
+		if (hierarchy.nodeList[i].parentIndex == -1)
+			hierarchy.nodeList[i].globalTransform = hierarchy.nodeList[i].localTransform;
+		else
+			hierarchy.nodeList[i].globalTransform *= hierarchy.nodeList[i].localTransform;
+	}
 }

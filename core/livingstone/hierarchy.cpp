@@ -1,10 +1,7 @@
 #include "hierarchy.h"
 
-void livingstone::SolveFK(Hierarchy hierarchy)
+void livingstone::Hierarchy::addNode(livingstone::Node add)
 {
-	for each (livingstone::Node node in hierarchy)
-		if (node.parentIndex == -1)
-			node.globalTransform = node.localTransform;
-		else
-			node.globalTransform = hierarchy[node.parentIndex].globalTransform * node.localTransform;
+	nodeList.push_back(add);
+	nodeCount++;
 }

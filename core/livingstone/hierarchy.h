@@ -1,10 +1,12 @@
 #include "node.h"
+#include <vector>
 namespace livingstone
 {
 	struct Hierarchy 
 	{
-		Node* nodes;
+		std::vector<Node> nodeList;
 		unsigned int nodeCount;
+
+		void addNode(livingstone::Node add);
 	};
-	void SolveFK(Hierarchy hierarchy);
 }
