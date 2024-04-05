@@ -30,6 +30,7 @@ struct Material {
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 GLFWwindow* initWindow(const char* title, int width, int height);
 void drawUI(livingstone::Framebuffer shadowMap);
+void SolveFK(livingstone::Hierarchy hierarchy);
 //Global state
 int screenWidth = 1080;
 int screenHeight = 720;
@@ -54,17 +55,29 @@ int main() {
 	GLuint brickTexture = ew::loadTexture("assets/RoofingTiles014A_1K-JPG_Color.jpg");
 	ew::Mesh planeMesh = ew::Mesh(ew::createPlane(10, 10, 5));
 
-	livingstone::Node root = livingstone::createNode(monkeyTransform.modelMatrix(), 0);
-	livingstone::Node hips = livingstone::createNode(monkeyTransform.modelMatrix(), 1);
-	livingstone::Node torso = livingstone::createNode(monkeyTransform.modelMatrix(), 2);
-	livingstone::Node shoulder = livingstone::createNode(monkeyTransform.modelMatrix(), 3);
+	livingstone::Node root = livingstone::createNode(-1);
+	livingstone::Node torso = livingstone::createNode(0);
+	livingstone::Node shoulderL = livingstone::createNode(1);
+	livingstone::Node shoulderR = livingstone::createNode(1);
+	livingstone::Node elbowL = livingstone::createNode(2);
+	livingstone::Node elbowR = livingstone::createNode(3);
+	livingstone::Node wristL = livingstone::createNode(4);
+	livingstone::Node wristR = livingstone::createNode(5);
 
+
+	root.transform.position = glm::vec3(0, 3, 0);
+	torso.transform.position = glm::vec3(0, 2, 0);
+	shoulderL.transform.position = glm::vec3(1, 1, 0);
 	livingstone::Hierarchy h;
 
-	h.addNode(root);
-	h.addNode(hips);
-	h.addNode(torso);
-	h.addNode(shoulder);
+	h.addNode(root);      //0
+	h.addNode(torso);     //1
+	h.addNode(shoulderL); //2
+	h.addNode(shoulderR); //3
+	h.addNode(elbowL);    //4
+	h.addNode(elbowR);    //5
+	h.addNode(wristL);    //6
+	h.addNode(wristR);    //7
 
 	livingstone::Framebuffer framebuffer = livingstone::createFramebuffer(screenWidth, screenHeight, GL_RGB16F);
 	livingstone::Framebuffer shadowMap = livingstone::createShadowMap(resolution, resolution, GL_RGB16F);
@@ -91,11 +104,17 @@ int main() {
 	glCreateVertexArrays(1, &dummyVAO);
 	while (!glfwWindowShouldClose(window)) {
 
+
 		glfwPollEvents();
 		float time = (float)glfwGetTime();
 		deltaTime = time - prevFrameTime;
 		prevFrameTime = time;
 
+
+		for (int i = 0; i < h.nodeList.size(); i++)
+		{
+			h.nodeList[i].localTransform = h.nodeList[i].transform.modelMatrix();
+		}
 		//RENDER
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowMap.fbo); 
 		glViewport(0, 0, shadowMap.width, shadowMap.height);
@@ -125,8 +144,9 @@ int main() {
 		shader.setFloat("_Material.Ks", material.Ks); 
 		shader.setFloat("_Material.Shininess", material.Shininess); 
 
-		SolveFK(h);
+		shader.setMat4("_Model", root.globalTransform);
 		monkeyModel.draw(); //Draws monkey model using current shader 
+
 		planeMesh.draw();
 
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.fbo); 
@@ -246,6 +266,6 @@ void SolveFK(livingstone::Hierarchy hierarchy)
 		if (hierarchy.nodeList[i].parentIndex == -1)
 			hierarchy.nodeList[i].globalTransform = hierarchy.nodeList[i].localTransform;
 		else
-			hierarchy.nodeList[i].globalTransform *= hierarchy.nodeList[i].localTransform;
+			hierarchy.nodeList[i].globalTransform = hierarchy.nodeList[hierarchy.nodeList[i].parentIndex].globalTransform * hierarchy.nodeList[i].localTransform;
 	}
 }
