@@ -4,9 +4,9 @@ namespace livingstone
 {
 	struct Hierarchy 
 	{
-		std::vector<Node> nodeList;
+		std::vector<Node*> nodeList;
 		unsigned int nodeCount = 0;
 
-		void addNode(livingstone::Node add);
+		void addNode(livingstone::Node* add);
 	};
 }

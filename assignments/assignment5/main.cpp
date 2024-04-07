@@ -43,7 +43,7 @@ ew::Camera orthoCam;
 ew::CameraController cameraController;
 
 int main() {
-	GLFWwindow* window = initWindow("Assignment 1", screenWidth, screenHeight);
+	GLFWwindow* window = initWindow("Assignment 5", screenWidth, screenHeight);
 	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 	
 	ew::Model monkeyModel = ew::Model("assets/suzanne.obj");
@@ -54,30 +54,45 @@ int main() {
 	ew::Shader shader = ew::Shader("assets/lit.vert", "assets/lit.frag"); 
 	GLuint brickTexture = ew::loadTexture("assets/RoofingTiles014A_1K-JPG_Color.jpg");
 	ew::Mesh planeMesh = ew::Mesh(ew::createPlane(10, 10, 5));
+	ew::Transform planeTransform;
 
-	livingstone::Node root = livingstone::createNode(-1);
-	livingstone::Node torso = livingstone::createNode(0);
-	livingstone::Node shoulderL = livingstone::createNode(1);
-	livingstone::Node shoulderR = livingstone::createNode(1);
-	livingstone::Node elbowL = livingstone::createNode(2);
-	livingstone::Node elbowR = livingstone::createNode(3);
-	livingstone::Node wristL = livingstone::createNode(4);
-	livingstone::Node wristR = livingstone::createNode(5);
+	planeTransform.position = glm::vec3(0, -5, 0);
 
 
-	root.transform.position = glm::vec3(0, 3, 0);
+	livingstone::Node head = livingstone::createNode(-1);
+	livingstone::Node torso = livingstone::createNode(-1);
+	livingstone::Node shoulderL = livingstone::createNode(0);
+	livingstone::Node shoulderR = livingstone::createNode(0);
+	livingstone::Node elbowL = livingstone::createNode(1);
+	livingstone::Node elbowR = livingstone::createNode(2);
+	livingstone::Node wristL = livingstone::createNode(3);
+	livingstone::Node wristR = livingstone::createNode(4);
+
+
+	head.transform.position = glm::vec3(0, 3, 0);
 	torso.transform.position = glm::vec3(0, 2, 0);
-	shoulderL.transform.position = glm::vec3(1, 1, 0);
+	shoulderL.transform.position = glm::vec3(-1, 1, 0);
+	shoulderR.transform.position = glm::vec3(1, 1, 0);
+	elbowL.transform.position = glm::vec3(-1, 0, 0);
+	elbowR.transform.position = glm::vec3(1, 0, 0);
+
+	torso.transform.scale = glm::vec3(1, 1, 1);
+	shoulderL.transform.scale = glm::vec3(0.5, 0.5, 0.5);
+	shoulderR.transform.scale = glm::vec3(0.5, 0.5, 0.5);
+	elbowL.transform.scale = glm::vec3(0.3, 0.3, 0.3);
+	elbowR.transform.scale = glm::vec3(0.3, 0.3, 0.3);
+	wristL.transform.scale = glm::vec3(0.1, 0.1, 0.1);
+	wristR.transform.scale = glm::vec3(0.1, 0.1, 0.1);
 	livingstone::Hierarchy h;
 
-	h.addNode(root);      //0
-	h.addNode(torso);     //1
-	h.addNode(shoulderL); //2
-	h.addNode(shoulderR); //3
-	h.addNode(elbowL);    //4
-	h.addNode(elbowR);    //5
-	h.addNode(wristL);    //6
-	h.addNode(wristR);    //7
+	h.addNode(&head);      //0
+	h.addNode(&torso);     //1
+	h.addNode(&shoulderL); //2
+	h.addNode(&shoulderR); //3
+	h.addNode(&elbowL);    //4
+	h.addNode(&elbowR);    //5
+	h.addNode(&wristL);    //6
+	h.addNode(&wristR);    //7
 
 	livingstone::Framebuffer framebuffer = livingstone::createFramebuffer(screenWidth, screenHeight, GL_RGB16F);
 	livingstone::Framebuffer shadowMap = livingstone::createShadowMap(resolution, resolution, GL_RGB16F);
@@ -111,9 +126,14 @@ int main() {
 		prevFrameTime = time;
 
 
+		shoulderL.transform.rotation = glm::rotate(shoulderL.transform.rotation, deltaTime, glm::vec3(1, 0, 0));
+		shoulderR.transform.rotation = glm::rotate(shoulderR.transform.rotation, deltaTime, glm::vec3(1, 0, 0));
+		wristL.transform.rotation = glm::rotate(wristL.transform.rotation, deltaTime, glm::vec3(1, 0, 0));
+		wristR.transform.rotation = glm::rotate(wristR.transform.rotation, deltaTime, glm::vec3(1, 0, 0));
+
 		for (int i = 0; i < h.nodeList.size(); i++)
 		{
-			h.nodeList[i].localTransform = h.nodeList[i].transform.modelMatrix();
+			h.nodeList[i]->localTransform = h.nodeList[i]->transform.modelMatrix();
 		}
 		//RENDER
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowMap.fbo); 
@@ -137,15 +157,22 @@ int main() {
 		shader.setInt("_MainTex", 0);
 		shader.setInt("_ShadowMap", shadowMap.depthBuffer);
 		shader.setMat4("_ViewProjection", camera.projectionMatrix() * camera.viewMatrix()); 
-		shader.setMat4("_Model", monkeyTransform.modelMatrix()); 
 		shader.setVec3("_EyePos", camera.position); 
 		shader.setFloat("_Material.Ka", material.Ka); 
 		shader.setFloat("_Material.Kd", material.Kd); 
 		shader.setFloat("_Material.Ks", material.Ks); 
 		shader.setFloat("_Material.Shininess", material.Shininess); 
 
-		shader.setMat4("_Model", root.globalTransform);
-		monkeyModel.draw(); //Draws monkey model using current shader 
+		shader.setMat4("_Model", torso.globalTransform);
+		monkeyModel.draw();
+		shader.setMat4("_Model", shoulderL.globalTransform);
+		monkeyModel.draw();
+		shader.setMat4("_Model", shoulderR.globalTransform);
+		monkeyModel.draw();
+		shader.setMat4("_Model", wristL.globalTransform);
+		monkeyModel.draw();
+		shader.setMat4("_Model", wristR.globalTransform);
+		monkeyModel.draw();
 
 		planeMesh.draw();
 
@@ -164,7 +191,6 @@ int main() {
 		blurShader.use();
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		depthShader.use();
-		drawUI(shadowMap); 
 		glfwSwapBuffers(window);
 	}
 	printf("Shutting down...");
@@ -199,17 +225,6 @@ void drawUI(livingstone::Framebuffer shadowMap) {
 	if (ImGui::CollapsingHeader("Shadows")) {
 		
 	}
-	ImGui::End();
-
-	ImGui::Begin("Shadow Map");
-	//Using a Child allow to fill all the space of the window.
-	ImGui::BeginChild("Shadow Map");
-	//Stretch image to be window size
-	ImVec2 windowSize = ImGui::GetWindowSize();
-	//Invert 0-1 V to flip vertically for ImGui display
-	//shadowMap is the texture2D handle
-	ImGui::Image((ImTextureID)shadowMap.depthBuffer, windowSize, ImVec2(0, 1), ImVec2(1, 0));
-	ImGui::EndChild();
 	ImGui::End();
 
 	ImGui::Render();
@@ -263,9 +278,9 @@ void SolveFK(livingstone::Hierarchy hierarchy)
 {
 	for (int i = 0; i < hierarchy.nodeCount; i++)
 	{
-		if (hierarchy.nodeList[i].parentIndex == -1)
-			hierarchy.nodeList[i].globalTransform = hierarchy.nodeList[i].localTransform;
+		if (hierarchy.nodeList[i]->parentIndex == -1)
+			hierarchy.nodeList[i]->globalTransform = hierarchy.nodeList[i]->localTransform;
 		else
-			hierarchy.nodeList[i].globalTransform = hierarchy.nodeList[hierarchy.nodeList[i].parentIndex].globalTransform * hierarchy.nodeList[i].localTransform;
+			hierarchy.nodeList[i]->globalTransform = hierarchy.nodeList[hierarchy.nodeList[i]->parentIndex]->globalTransform * hierarchy.nodeList[i]->localTransform;
 	}
 }
