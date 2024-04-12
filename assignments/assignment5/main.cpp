@@ -56,43 +56,47 @@ int main() {
 	ew::Mesh planeMesh = ew::Mesh(ew::createPlane(10, 10, 5));
 	ew::Transform planeTransform;
 
-	planeTransform.position = glm::vec3(0, -5, 0);
+	planeTransform.position = glm::vec3(0, -3, 0);
 
+	livingstone::Node root = livingstone::createNode(-1);
+	livingstone::Node head = livingstone::createNode(1);
+	livingstone::Node torso = livingstone::createNode(0);
+	livingstone::Node shoulderL = livingstone::createNode(1);
+	livingstone::Node shoulderR = livingstone::createNode(1);
+	livingstone::Node elbowL = livingstone::createNode(3);
+	livingstone::Node elbowR = livingstone::createNode(4);
+	livingstone::Node wristL = livingstone::createNode(5);
+	livingstone::Node wristR = livingstone::createNode(6);
 
-	livingstone::Node head = livingstone::createNode(-1);
-	livingstone::Node torso = livingstone::createNode(-1);
-	livingstone::Node shoulderL = livingstone::createNode(0);
-	livingstone::Node shoulderR = livingstone::createNode(0);
-	livingstone::Node elbowL = livingstone::createNode(1);
-	livingstone::Node elbowR = livingstone::createNode(2);
-	livingstone::Node wristL = livingstone::createNode(3);
-	livingstone::Node wristR = livingstone::createNode(4);
+	root.transform.position = glm::vec3(0, 0, 0);
+	head.transform.position = glm::vec3(1, 2, 0);
+	torso.transform.position = glm::vec3(1, 1, 0);
+	shoulderL.transform.position = glm::vec3(-2, 0, 0);
+	shoulderR.transform.position = glm::vec3(4, 0, 0);
+	elbowL.transform.position = glm::vec3(-2, -1, 0);
+	elbowR.transform.position = glm::vec3(4, -1, 0);
+	wristL.transform.position = glm::vec3(-2, -2, 0);
+	wristR.transform.position = glm::vec3(4, -2, 0);
 
-
-	head.transform.position = glm::vec3(0, 3, 0);
-	torso.transform.position = glm::vec3(0, 2, 0);
-	shoulderL.transform.position = glm::vec3(-1, 1, 0);
-	shoulderR.transform.position = glm::vec3(1, 1, 0);
-	elbowL.transform.position = glm::vec3(-1, 0, 0);
-	elbowR.transform.position = glm::vec3(1, 0, 0);
-
+	head.transform.scale = glm::vec3(0.5, 0.5, 0.5);
 	torso.transform.scale = glm::vec3(1, 1, 1);
 	shoulderL.transform.scale = glm::vec3(0.5, 0.5, 0.5);
 	shoulderR.transform.scale = glm::vec3(0.5, 0.5, 0.5);
-	elbowL.transform.scale = glm::vec3(0.3, 0.3, 0.3);
-	elbowR.transform.scale = glm::vec3(0.3, 0.3, 0.3);
-	wristL.transform.scale = glm::vec3(0.1, 0.1, 0.1);
-	wristR.transform.scale = glm::vec3(0.1, 0.1, 0.1);
+	elbowL.transform.scale = glm::vec3(0.5, 0.5, 0.5);
+	elbowR.transform.scale = glm::vec3(0.5, 0.5, 0.5);
+	wristL.transform.scale = glm::vec3(0.5, 0.5, 0.5);
+	wristR.transform.scale = glm::vec3(0.5, 0.5, 0.5);
 	livingstone::Hierarchy h;
 
-	h.addNode(&head);      //0
+	h.addNode(&root);      //0
 	h.addNode(&torso);     //1
-	h.addNode(&shoulderL); //2
-	h.addNode(&shoulderR); //3
-	h.addNode(&elbowL);    //4
-	h.addNode(&elbowR);    //5
-	h.addNode(&wristL);    //6
-	h.addNode(&wristR);    //7
+	h.addNode(&head);      //2
+	h.addNode(&shoulderL); //3
+	h.addNode(&shoulderR); //4
+	h.addNode(&elbowL);    //5
+	h.addNode(&elbowR);    //6
+	h.addNode(&wristL);    //7
+	h.addNode(&wristR);    //8
 
 	livingstone::Framebuffer framebuffer = livingstone::createFramebuffer(screenWidth, screenHeight, GL_RGB16F);
 	livingstone::Framebuffer shadowMap = livingstone::createShadowMap(resolution, resolution, GL_RGB16F);
@@ -125,12 +129,19 @@ int main() {
 		deltaTime = time - prevFrameTime;
 		prevFrameTime = time;
 
-
-		shoulderL.transform.rotation = glm::rotate(shoulderL.transform.rotation, deltaTime, glm::vec3(1, 0, 0));
-		shoulderR.transform.rotation = glm::rotate(shoulderR.transform.rotation, deltaTime, glm::vec3(1, 0, 0));
+		
+		root.transform.rotation = glm::rotate(root.transform.rotation, deltaTime, glm::vec3(0, 1, 0));
+		torso.transform.rotation = glm::rotate(torso.transform.rotation, deltaTime, glm::vec3(0, 0, 1));
+		shoulderL.transform.rotation = glm::rotate(shoulderL.transform.rotation, deltaTime, glm::vec3(0, 0, 1));
+		shoulderR.transform.rotation = glm::rotate(shoulderR.transform.rotation, deltaTime, glm::vec3(0, 0, 1));
+		elbowL.transform.rotation = glm::rotate(elbowL.transform.rotation, deltaTime, glm::vec3(0, 0, 1));
+		elbowR.transform.rotation = glm::rotate(elbowR.transform.rotation, deltaTime, glm::vec3(0, 0, 1));
 		wristL.transform.rotation = glm::rotate(wristL.transform.rotation, deltaTime, glm::vec3(1, 0, 0));
 		wristR.transform.rotation = glm::rotate(wristR.transform.rotation, deltaTime, glm::vec3(1, 0, 0));
-
+		// placeholeder vec3s
+		// (1, 0, 0)
+		// (0, 1, 0)
+		// (0, 0, 1)
 		for (int i = 0; i < h.nodeList.size(); i++)
 		{
 			h.nodeList[i]->localTransform = h.nodeList[i]->transform.modelMatrix();
@@ -163,19 +174,27 @@ int main() {
 		shader.setFloat("_Material.Ks", material.Ks); 
 		shader.setFloat("_Material.Shininess", material.Shininess); 
 
+		shader.setMat4("_Model", head.globalTransform);
+		monkeyModel.draw();
 		shader.setMat4("_Model", torso.globalTransform);
 		monkeyModel.draw();
 		shader.setMat4("_Model", shoulderL.globalTransform);
 		monkeyModel.draw();
 		shader.setMat4("_Model", shoulderR.globalTransform);
 		monkeyModel.draw();
+		shader.setMat4("_Model", elbowL.globalTransform);
+		monkeyModel.draw();
+		shader.setMat4("_Model", elbowR.globalTransform);
+		monkeyModel.draw();
 		shader.setMat4("_Model", wristL.globalTransform);
 		monkeyModel.draw();
 		shader.setMat4("_Model", wristR.globalTransform);
 		monkeyModel.draw();
 
-		planeMesh.draw();
 
+		shader.setMat4("_Model", planeTransform.modelMatrix());
+		planeMesh.draw();
+		SolveFK(h);
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.fbo); 
 		
 		//Rotate model around Y axis
